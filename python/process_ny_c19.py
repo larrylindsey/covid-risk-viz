@@ -15,7 +15,7 @@ def parse_counties(counties_csv):
       death count.
 
   Returns:
-    A dict structure, which can be accessed like:
+    A dict tree, which can be accessed like:
       (cases, deaths) = scd[state][county][date_str]
 
   """
@@ -49,14 +49,24 @@ def write_json_tree(state_county_date_dict, base_dir):
   """
   if not os.path.isdir(base_dir):
     os.mkdir(base_dir)
+  state_county = defaultdict(list)
   for state, county_date_dict in state_county_date_dict.items():
-    path = os.path.join(base_dir, state)
+    safe_state = state.replace(' ', '_')
+    path = os.path.join(base_dir, safe_state)
     if not os.path.isdir(path):
       os.mkdir(path)
     for county, date_dict in county_date_dict.items():
-      json_path = os.path.join(path, '%s.json' % county)
+      state_county[state].append(county)
+      safe_county = county.replace(' ', '_')
+      json_path = os.path.join(path, '%s.json' % safe_county)
       with open(json_path, 'w') as f:
         json.dump(date_dict, f)
+    
+    for counties in state_county.values():
+      counties.sort()
+
+    with(open(os.path.join(base_dir, 'state_county.json'), 'w')) as f:
+      json.dump(state_county, f)
 
 
 def main():
