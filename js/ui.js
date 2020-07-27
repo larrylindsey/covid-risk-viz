@@ -34,6 +34,23 @@ function county_selected(county) {
   const select_county_button = get_county_dropdown_button();
   select_county_button.textContent = county;
   // TODO: plots.
+  let callback = (dates, cases, fatalities) => {
+    new Chart(document.getElementById('raw_cases_canvas'), {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{ 
+            data: cases,
+            label: 'Confirmed Cases',
+            borderColor: "#3e95cd",
+            fill: false
+          }
+        ]
+      }
+    });
+  };
+  const state = get_state_dropdown_button().textContent;
+  get_county_data_then(state, county, callback);
 }
 
 /**
@@ -62,78 +79,43 @@ function create_dropdown_item(tag, action) {
  *   a list of this state's counties (or equivalent).
  */
 function populate_county_menu(state) {
-  const xhr = new XMLHttpRequest();
-
   const select_county = get_county_dropdown();
   while (select_county.firstChild) {
     select_county.removeChild(select_county.lastChild);
   }
-  if (state == 'Louisiana') {
-    get_county_dropdown_button().textContent = 'Select Parish';
-  } else {
-    get_county_dropdown_button().textContent = 'Select County';
-  }
+  get_county_dropdown_button().textContent = 'Select County';
   
-
-  let xhr_handler = () => {
-   if(xhr.readyState == 4) {
-      if (!xhr.status == 200) {
-        console.log('Error!');
-        return;
-      }
-
-      const states_and_counties = JSON.parse(
-        new String(xhr.responseText)
-      );
-
-      for (const county of states_and_counties[state]) {
-        const county_element = create_dropdown_item(county, county_selected);
-        select_county.appendChild(county_element);
-      }
+  let callback = (states_and_counties) => {
+    for (const county of states_and_counties[state]) {
+      const county_element = create_dropdown_item(county, county_selected);
+      select_county.appendChild(county_element);
     }
   }
 
-  xhr.onreadystatechange = xhr_handler;
-  xhr.open('GET', '/data/state_county.json', true);
-  xhr.send();  
+  get_state_county_dict_then(callback);
 }
 
 /**
  * Populates the state dropdown selection menu.
  */
 function populate_state_menu() {
-  const xhr = new XMLHttpRequest();
+  let callback = (states_and_counties) => {
+    const state_list = [];
+    for (const state in states_and_counties) {
+      state_list.push(state);
+    }
 
-  let xhr_handler = () => {
-   if(xhr.readyState == 4) {
-      if (!xhr.status == 200) {
-        console.log('Error!');
-        return;
-      }
+    state_list.sort();
 
-      const states_and_counties = JSON.parse(
-        new String(xhr.responseText)
-      );
-
-      const state_list = [];
-      for (const state in states_and_counties) {
-        state_list.push(state);
-      }
-
-      state_list.sort();
-
-      const select_state = get_state_dropdown();
-      while (select_state.firstChild) {
-        select_state.removeChild(select_state.lastChild);
-      }
-      for (const state of state_list) {
-        const state_element = create_dropdown_item(state, state_selected);
-        select_state.appendChild(state_element);
-      }
+    const select_state = get_state_dropdown();
+    while (select_state.firstChild) {
+      select_state.removeChild(select_state.lastChild);
+    }
+    for (const state of state_list) {
+      const state_element = create_dropdown_item(state, state_selected);
+      select_state.appendChild(state_element);
     }
   }
-
-  xhr.onreadystatechange = xhr_handler;
-  xhr.open('GET', '/data/state_county.json', true);
-  xhr.send();  
+  
+  get_state_county_dict_then(callback);
 }
