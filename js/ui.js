@@ -1,17 +1,17 @@
 function get_state_dropdown() {
-  return document.getElementById('select_state');
+  return document.getElementById('select_state_control');
 }
 
 function get_county_dropdown() {
-  return document.getElementById('select_county');
+  return document.getElementById('select_county_control');
 }
 
 function get_state_dropdown_button() {
-  return document.getElementById('select_state_button');
+  return document.getElementById('select_state_control');
 }
 
 function get_county_dropdown_button() {
-  return document.getElementById('select_county_button');
+  return document.getElementById('select_county_control');
 }
 
 /**
@@ -61,15 +61,9 @@ function county_selected(county) {
  * @param action a callback function that takes a single string parameter.
  * @return {Element} a dropdown item element, ready to be added to a dropdown.
  */
-function create_dropdown_item(tag, action) {
-  const element = document.createElement('a');
-  element.className = 'dropdown-item';
-  element.href = '#';
+function create_dropdown_item(tag) {
+  const element = document.createElement('option');
   element.textContent = tag;
-  element.onclick = () => {
-    action(tag);
-  };
-
   return element;
 }
 
@@ -83,11 +77,21 @@ function populate_county_menu(state) {
   while (select_county.firstChild) {
     select_county.removeChild(select_county.lastChild);
   }
-  get_county_dropdown_button().textContent = 'Select County';
+
+  const label_option = document.createElement('option');
+  label_option.textContent = 'Select County';
+  select_county.appendChild(label_option);
+
+  select_county.onchange = () => {
+    const idx = select_county.selectedIndex;
+    const selected_option = select_county.options[idx];
+    const county_name = selected_option.textContent;
+    county_selected(county_name);
+  }
   
   let callback = (states_and_counties) => {
     for (const county of states_and_counties[state]) {
-      const county_element = create_dropdown_item(county, county_selected);
+      const county_element = create_dropdown_item(county);
       select_county.appendChild(county_element);
     }
   }
@@ -108,11 +112,24 @@ function populate_state_menu() {
     state_list.sort();
 
     const select_state = get_state_dropdown();
+
+    select_state.onchange = () => {
+      const idx = select_state.selectedIndex;
+      const selected_option = select_state.options[idx];
+      const state_name = selected_option.textContent;
+      state_selected(state_name);
+    }
+
     while (select_state.firstChild) {
       select_state.removeChild(select_state.lastChild);
     }
+
+    const label_option = document.createElement('option');
+    label_option.textContent = 'Select State';
+    select_state.appendChild(label_option);
+    
     for (const state of state_list) {
-      const state_element = create_dropdown_item(state, state_selected);
+      const state_element = create_dropdown_item(state);
       select_state.appendChild(state_element);
     }
   }
