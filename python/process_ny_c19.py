@@ -26,7 +26,7 @@ def parse_counties(counties_csv):
       if line.startswith('date'):
         continue
       date_str, county, state, _, cases, deaths = line.strip().split(',')
-      state_county_covid[state][county][date_str] = (cases, deaths)
+      state_county_covid[state][county][date_str] = (int(cases), int(deaths))
 
   return state_county_covid
 

@@ -36,13 +36,17 @@ function get_county_data_then(state, county, callback) {
        const cases = [];
        const fatalities = [];
 
-       for (const date in county_data) {
-         dates.push(date);
-         cases.push(county_data[date][0]);
-         fatalities.push(county_data[date][1])
+       for (const date_str in county_data) {
+         const date = new Date(date_str);
+         dates.push(date.valueOf());
+         cases.push(county_data[date_str][0]);
+         fatalities.push(county_data[date_str][1])
        }
 
-       callback(dates, cases, fatalities);
+       const case_time_series = new TimeSeries(dates, cases);
+       const fatality_time_series = new TimeSeries(dates, fatalities);
+
+       callback(case_time_series, fatality_time_series);
      }
    }
 
@@ -55,3 +59,20 @@ function get_county_data_then(state, county, callback) {
    xhr.open('GET', url);
    xhr.send();
 }
+
+function dates_to_strings(dates) {
+  const date_strings = [];
+  for (const date of dates) {
+    const year = 1900 + date.getYear();
+    const month = 1 + date.getMonth();
+    const day = date.getDate();
+    date_strings.push(`${year}-${month}-${day}`);
+  }
+  return date_strings;
+}
+
+function add_days_to_date(date, days) {
+  const days_ms = days * 3600 * 24 * 1000;
+  return new Date(date.valueOf() + days_ms);
+}
+

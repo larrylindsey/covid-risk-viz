@@ -34,13 +34,13 @@ function county_selected(county) {
   const select_county_button = get_county_dropdown_button();
   select_county_button.textContent = county;
   // TODO: plots.
-  let callback = (dates, cases, fatalities) => {
+  let callback = (cases, fatalities) => {
     new Chart(document.getElementById('raw_cases_canvas'), {
       type: 'line',
       data: {
-        labels: dates,
+        labels: cases.domain_strings(),
         datasets: [{ 
-            data: cases,
+            data: differentiate(cases).as_chart_data(),
             label: 'Confirmed Cases',
             borderColor: "#3e95cd",
             fill: false
