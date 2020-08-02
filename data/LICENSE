@@ -1,0 +1,5 @@
+Data in this folder derived from the New York Times covid-19 database [1], and
+is governed by that repository's license.
+
+1: https://github.com/nytimes/covid-19-data
+2: https://raw.githubusercontent.com/nytimes/covid-19-data/master/LICENSE
