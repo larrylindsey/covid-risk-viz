@@ -7,13 +7,14 @@
 
     <title>Covid Risk "Model"</title>
 
+    <script src="js/charts.js"></script>
     <script src="js/data.js"></script>
     <script src="js/timeseries.js"></script>
     <script src="js/ui.js"></script>
   </head>
-  <body onload="populate_state_menu()">
+  <body onload="main_entry()">
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
@@ -31,8 +32,7 @@
           <select class="form-control select2" id="select_county_control">
             <option>Select County</option>
           </select>
-      </form>
-      
+        </form>      
       </div>
     </div>
 
@@ -42,9 +42,20 @@
 
     <div class="container">
       <div class="row">
-        <canvas id="raw_cases_canvas"></canvas>
+        <canvas id="daily_fatalities_canvas"></canvas>
       </div>
     </div>
+    <div class="container">
+      <div class="row">
+        <canvas id="daily_cases_canvas"></canvas>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <canvas id="active_cases_canvas"></canvas>
+      </div>
+    </div>
+    
 
 </body>
 </html>

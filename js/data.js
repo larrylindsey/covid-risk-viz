@@ -50,8 +50,8 @@ function get_county_data_then(state, county, callback) {
      }
    }
 
-   const safe_state = state.replace(' ', '_');
-   const safe_county = county.replace(' ', '_');
+   const safe_state = state.replace(/ /g, '_');
+   const safe_county = county.replace(/ /g, '_');
    const url = '/data/' + safe_state + '/' + safe_county + '.json';
 
    let xhr = new XMLHttpRequest();

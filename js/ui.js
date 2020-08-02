@@ -6,12 +6,18 @@ function get_county_dropdown() {
   return document.getElementById('select_county_control');
 }
 
-function get_state_dropdown_button() {
-  return document.getElementById('select_state_control');
+function selected_state() {
+  const state_dropdown = get_state_dropdown();
+  const idx = state_dropdown.selectedIndex;
+  const selected_option = state_dropdown.options[idx];
+  return selected_option.textContent;
 }
 
-function get_county_dropdown_button() {
-  return document.getElementById('select_county_control');
+function selected_county() {
+  const county_dropdown = get_county_dropdown();
+  const idx = county_dropdown.selectedIndex;
+  const selected_option = county_dropdown.options[idx];
+  return selected_option.textContent;
 }
 
 /**
@@ -20,8 +26,7 @@ function get_county_dropdown_button() {
  * @param {string} state the selected state.
  */
 function state_selected(state) {
-  const select_state_button = get_state_dropdown_button();
-  select_state_button.textContent = state;
+  const select_state = get_state_dropdown();
   populate_county_menu(state);
 }
 
@@ -31,26 +36,10 @@ function state_selected(state) {
  * @param {string} county the selected county.
  */
 function county_selected(county) {
-  const select_county_button = get_county_dropdown_button();
-  select_county_button.textContent = county;
-  // TODO: plots.
   let callback = (cases, fatalities) => {
-    new Chart(document.getElementById('raw_cases_canvas'), {
-      type: 'line',
-      data: {
-        labels: cases.domain_strings(),
-        datasets: [{ 
-            data: differentiate(cases).as_chart_data(),
-            label: 'Confirmed Cases',
-            borderColor: "#3e95cd",
-            fill: false
-          }
-        ]
-      }
-    });
+    update_charts(cases, fatalities);
   };
-  const state = get_state_dropdown_button().textContent;
-  get_county_data_then(state, county, callback);
+  get_county_data_then(selected_state(), county, callback);
 }
 
 /**
@@ -82,11 +71,8 @@ function populate_county_menu(state) {
   label_option.textContent = 'Select County';
   select_county.appendChild(label_option);
 
-  select_county.onchange = () => {
-    const idx = select_county.selectedIndex;
-    const selected_option = select_county.options[idx];
-    const county_name = selected_option.textContent;
-    county_selected(county_name);
+  select_county.onchange = () => {    
+    county_selected(selected_county());
   }
   
   let callback = (states_and_counties) => {
@@ -114,10 +100,7 @@ function populate_state_menu() {
     const select_state = get_state_dropdown();
 
     select_state.onchange = () => {
-      const idx = select_state.selectedIndex;
-      const selected_option = select_state.options[idx];
-      const state_name = selected_option.textContent;
-      state_selected(state_name);
+      state_selected(selected_state());
     }
 
     while (select_state.firstChild) {
@@ -135,4 +118,14 @@ function populate_state_menu() {
   }
   
   get_state_county_dict_then(callback);
+}
+
+function main_entry() {
+  populate_state_menu();
+  init_charts();
+}
+
+function assert(condition) {
+  if (condition) return;
+  throw 'Failure condition!';
 }
