@@ -16,7 +16,7 @@ function get_state_county_dict_then(callback) {
   
    let xhr = new XMLHttpRequest();
    xhr.onreadystatechange = xhr_handler;
-   xhr.open('GET', '/data/state_county.json', true);
+   xhr.open('GET', 'data/state_county.json', true);
    xhr.send();    
 }
 
@@ -52,7 +52,7 @@ function get_county_data_then(state, county, callback) {
 
    const safe_state = state.replace(/ /g, '_');
    const safe_county = county.replace(/ /g, '_');
-   const url = '/data/' + safe_state + '/' + safe_county + '.json';
+   const url = 'data/' + safe_state + '/' + safe_county + '.json';
 
    let xhr = new XMLHttpRequest();
    xhr.onreadystatechange = xhr_handler;
