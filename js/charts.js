@@ -23,9 +23,9 @@ class ChartManager {
     const active_case_estimate_valid = active_case_estimate.slice(
       [crop_size, -crop_size]);
     const active_case_estimate_projection = active_case_estimate.slice(
-      -crop_size);
+      [-crop_size, -4])
 
-    let norm_factor = nj.arange(1, estimate_kernel_size).slice([null, null, -1]);
+    let norm_factor = nj.arange(1 + 4, estimate_kernel_size).slice([null, null, -1]);
     norm_factor = norm_factor.divide(estimate_kernel_size);
     let projected_case_estimate = active_case_estimate_projection.range();
     projected_case_estimate = projected_case_estimate.divide(norm_factor);
@@ -48,7 +48,7 @@ class ChartManager {
             fill: false
           }, {
             data: active_case_estimate_projection.as_chart_data(),
-            label: 'Projected Cases',
+            label: 'Extrapolated Cases',
             borderColor: '#cd953e',
             fill: false
           }]
