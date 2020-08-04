@@ -1,5 +1,12 @@
 const DAYS_MS = 3600 * 24 * 1000;
 
+/**
+ * Converts a timestamp to a date string.
+ * @param {number} timestamp unix epoch in milliseconds, or time since
+ *   UTC 1 Jan 1970.
+ * @return {string} representation of the corresponding date. For instance,
+ *   given a timestamp of 0, this function returns '1970-1-1'.
+ */
 function timestamp_to_string(timestamp) {
   const date = new Date(timestamp);
   const year = 1900 + date.getYear();
@@ -8,6 +15,11 @@ function timestamp_to_string(timestamp) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Converts a list of timestamps to date strings via timestamp_to_string.
+ * @param {[number]} timestamps unix epochs in milliseconds.
+ * @return {[string]} representations of the corresponding dates.
+ */
 function timestamp_array_to_string(timestamps) {
   const timestamp_strings = [];
   for (const ts of timestamps.tolist()) {
@@ -16,12 +28,30 @@ function timestamp_array_to_string(timestamps) {
   return timestamp_strings;
 }
 
+/**
+ * Computes the "differential" of a TimeSeries, or more properly the
+ * difference, since we're dealing with discrete data.
+ * @param {TimeSeries} time_series the TimeSeries to differentiate.
+ * @return {TimeSeries} the differential. The domain will remain unchanged,
+ *   and the first value in the range will correspond to the first value in
+ *   the original.
+ */
 function differentiate(time_series) {
   const padded_series = nj.concatenate(nj.array([0]), time_series.range());
   const differential_series =  nj.round(nj.convolve(padded_series, [1, -1]));
   return new TimeSeries(time_series.domain(), differential_series);
 }
 
+/**
+ * Computes an estimate of the daily case rate and active case rate given the
+ * daily fatality rate and some additional parameters.
+ * @param {TimeSeries} daily_fatality_time_series 
+ * @param {number} fatality_rate fraction of cases that become fatal.
+ * @param {number} delay_days mean time between transmission and mortality.
+ * @param {number} survival_course_days mean infectious duration in days.
+ * @return {[TimeSeries, TimeSeries]} an estimate of the new daily infections
+ *   and the number of active infectious cases.
+ */
 function fatality_count_to_case_estimate(
     daily_fatality_time_series, fatality_rate = 0.01, delay_days = 19,
     survival_course_days = 14) {
@@ -33,6 +63,11 @@ function fatality_count_to_case_estimate(
   return [case_estimate, active_case_estimate];
 }
 
+/**
+ * Merges and sorts the domains of any number of TimeSeries
+ * @param  {...TimeSeries} time_series
+ * @return {[number]} the merged time stamps representing the union of domains.
+ */
 function merge_domains(...time_series) {
   const domain_set = new Set();
   for (const ts of time_series) {
@@ -51,45 +86,93 @@ function merge_domains(...time_series) {
   return nj.array(sorted_domain);
 }
 
+/**
+ * Represents time series data, in which the domain is millisecond UTC
+ * timestamps and the range is any numerical data. For our purposes here, the
+ * domain is aligned to whole days and the range is some kind of actual or
+ * estimated case count.
+ */
 class TimeSeries {
+  
+  /**
+   * Instantiates a new TimeSeries.
+   * @param {any} domain a list or nj.array of millisecond UTC timestamps.
+   * @param {any} range a list or nj.array of the values corresponding to the
+   *   given timestamps.
+   */
   constructor(domain, range) {
     this._domain = nj.array(domain);
     this._range = nj.array(range);
     assert(this._domain.size == this._range.size);
   }
 
+  /**
+   * @return [{number}] the domain as a list.
+   */
   domain_list() {
     return this._domain.tolist();
   }
 
+  /**
+   * @return [{number}] the range as a list.
+   */
   range_list() {
     return this._range.tolist();
   }
 
+  /**
+   * @return {TimeSeries}
+   */
   domain() {
     return this._domain;
   }
 
+  /**
+   * @return {TimeSeries}
+   */
   range() {
     return this._range;
   }
 
+  /**
+   * Sets the range.
+   * @param {any} new_range a list or nj.array to use as the new range for this
+   *   TimeSeries. Must have the same number of elements as the domain.
+   */
   set_range(new_range) {
     this._range = nj.array(new_range);
     assert(this._range.size == this._domain.size);
   }
 
+  /**
+   * Performs a slice operation on both the domain and range of this TimeSeries
+   * as with nj.array.
+   * @param {any} slice_argument slice parameter as used with nj.array.slice.
+   * @return {TimeSeries} a sliced TimeSeries.
+   */
   slice(slice_argument) {
     const sliced_domain = this._domain.slice(slice_argument);
     const sliced_range = this._range.slice(slice_argument);
     return new TimeSeries(sliced_domain, sliced_range);
   }
 
+  /**
+   * Shifts the domain of this TimeSeries by a number of days.
+   * @param {number} days number of days to shift the domain.
+   * @return {TimeSeries} a new TimeSeries with a shifted domain.
+   */
   date_shift(days) {
     const shifted_domain = this._domain.add(days * DAYS_MS);
     return new TimeSeries(shifted_domain, this._range);
   }
 
+  /**
+   * Performs a zero-padded full cross correlation over the range of this
+   * TimeSeries.
+   * @param {nj.Array} kernel the cross-corr kernel.
+   * @return {TimeSeries} a new TimeSeries representing the cross-correlation
+   *   result. The domain is expanded to correspond to the data.
+   */
   cross_correlate(kernel) {
     const kernel_size = kernel.size;
     const this_size = this._range.size;
@@ -110,10 +193,17 @@ class TimeSeries {
     return new TimeSeries(out_domain, output);
   }
 
+  /**
+   * return {[string]} this TimeSeries' domain as a list of strings.
+   */
   domain_strings() {
     return timestamp_array_to_string(this._domain);
   }
 
+  /**
+   * @return {[{x: number, y: number}]} this TimeSeries' data in the format
+   *   expected by the constructor for a Chart object.
+   */
   as_chart_data() {
     const domain = this.domain_list();
     const range = this.range_list();

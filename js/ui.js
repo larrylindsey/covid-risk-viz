@@ -1,11 +1,20 @@
+/**
+ * @return {Element} the state selection dropdown.
+ */
 function get_state_dropdown() {
   return document.getElementById('select_state_control');
 }
 
+/**
+ * @return {Element} the county selection dropdown.
+ */
 function get_county_dropdown() {
   return document.getElementById('select_county_control');
 }
 
+/**
+ * @return {string} the currently selected state.
+ */
 function selected_state() {
   const state_dropdown = get_state_dropdown();
   const idx = state_dropdown.selectedIndex;
@@ -13,6 +22,9 @@ function selected_state() {
   return selected_option.textContent;
 }
 
+/**
+ * @return {string} the currently selected county.
+ */
 function selected_county() {
   const county_dropdown = get_county_dropdown();
   const idx = county_dropdown.selectedIndex;
@@ -120,11 +132,18 @@ function populate_state_menu() {
   get_state_county_dict_then(callback);
 }
 
+/**
+ * Main entry point for Javascript code.
+ */
 function main_entry() {
   populate_state_menu();
   init_charts();
 }
 
+/**
+ * Simple dumb assert function.
+ * @param {boolean} condition 
+ */
 function assert(condition) {
   if (condition) return;
   throw 'Failure condition!';

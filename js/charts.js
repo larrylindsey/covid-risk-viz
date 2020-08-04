@@ -1,4 +1,8 @@
+/**
+ * Manages the Chart objects used for visualization.
+ */
 class ChartManager {
+
   constructor() {
     this._raw_cases_canvas = document.getElementById('raw_cases_canvas');
     this._charts = [];
@@ -10,6 +14,13 @@ class ChartManager {
     }
   }
 
+  /**
+   * Removes existing charts, performs computations, then updates the
+   * visualizations.
+   * 
+   * @param cases {TimeSeries} the cumulative confirmed case count.
+   * @param fatalities {TimeSeries} the cumulative fatality count.
+   */
   update_charts(cases, fatalities) {
     this._remove_charts();
 
@@ -106,10 +117,18 @@ class ChartManager {
 
 g_chart_manager = undefined;
 
+/**
+ * Initializes charts. Should be called only once at load time.
+ */
 function init_charts() {
   g_chart_manager = new ChartManager();
 }
 
+/**
+ * Updates charts to new case and fatality data.
+ * @param {TimeSeries} cases cumulative confirmed cases.
+ * @param {TimeSeries} fatalities cumulative confirmed fatalities.
+ */
 function update_charts(cases, fatalities) {
   g_chart_manager.update_charts(cases, fatalities);
 }

@@ -1,3 +1,9 @@
+/**
+ * Fetches and parses json containing a dict-like object whose keys are the
+ * states and values are lists of counties, then passes it to the callback.
+ * @param {function(*): undefined} callback a function that takes a single
+ *   argument containing the state and county information.
+ */
 function get_state_county_dict_then(callback) {
   const xhr_handler = () => {
     if(xhr.readyState == 4) {
@@ -20,6 +26,14 @@ function get_state_county_dict_then(callback) {
    xhr.send();    
 }
 
+/**
+ * Fetches and parses county-wise confirmed case and fatality data, then passes
+ * it to the given callback.
+ * @param {string} state
+ * @param {string} county 
+ * @param {function(TimeSeries, TimeSeries): undefined} callback a function
+ *  that accepts cumulative confirmed case and fatality time series objects.
+ */
 function get_county_data_then(state, county, callback) {
   const xhr_handler = () => {
     if(xhr.readyState == 4) {
@@ -50,29 +64,14 @@ function get_county_data_then(state, county, callback) {
      }
    }
 
+   // Resource paths are the same as capitalized states and counties with any
+   // spaces replaced by underscores.
    const safe_state = state.replace(/ /g, '_');
    const safe_county = county.replace(/ /g, '_');
-   const url = 'data/' + safe_state + '/' + safe_county + '.json';
+   const url = `data/${safe_state}/${safe_county}.json`;
 
    let xhr = new XMLHttpRequest();
    xhr.onreadystatechange = xhr_handler;
    xhr.open('GET', url);
    xhr.send();
 }
-
-function dates_to_strings(dates) {
-  const date_strings = [];
-  for (const date of dates) {
-    const year = 1900 + date.getYear();
-    const month = 1 + date.getMonth();
-    const day = date.getDate();
-    date_strings.push(`${year}-${month}-${day}`);
-  }
-  return date_strings;
-}
-
-function add_days_to_date(date, days) {
-  const days_ms = days * 3600 * 24 * 1000;
-  return new Date(date.valueOf() + days_ms);
-}
-
