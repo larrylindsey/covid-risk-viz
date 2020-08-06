@@ -58,7 +58,7 @@ function differentiate(time_series) {
 function fatality_count_to_case_estimate(
     daily_fatality_time_series, fatality_rate = 0.01, sigma = 5.25,
     delay_days = 19, contagious_duration_days = 14) {
-  let gaussian_sample_count = Math.floor(5.25 * sigma);
+  let gaussian_sample_count = Math.floor(2.5 * sigma);
   if (gaussian_sample_count % 2 == 0) ++gaussian_sample_count;
   const case_backsolve_kernel = guassian_kernel(sigma, gaussian_sample_count);
   let case_estimate = new TimeSeries(
