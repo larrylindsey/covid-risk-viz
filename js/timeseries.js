@@ -47,26 +47,49 @@ function differentiate(time_series) {
  * daily fatality rate and some additional parameters.
  * @param {TimeSeries} daily_fatality_time_series 
  * @param {number} fatality_rate fraction of cases that become fatal.
- * @param {number} delay_days mean time between transmission and mortality.
- * @param {number} survival_course_days mean infectious duration in days.
+ * @param {number} sigma the standard deviation of the distribution of delay
+ *   from infection to mortality.
+ * @param {number} delay_days mean time between infection and mortality.
+ * @param {number} contagious_duration_days mean duration of contagiousness in
+ *  days.
  * @return {[TimeSeries, TimeSeries]} an estimate of the new daily infections
  *   and the number of active infectious cases.
  */
 function fatality_count_to_case_estimate(
-    daily_fatality_time_series, fatality_rate = 0.01, delay_days = 19,
-    survival_course_days = 14) {
-  const case_estimate = new TimeSeries(
+    daily_fatality_time_series, fatality_rate = 0.01, sigma = 5.25,
+    delay_days = 19, contagious_duration_days = 14) {
+  let gaussian_sample_count = Math.floor(5.25 * sigma);
+  if (gaussian_sample_count % 2 == 0) ++gaussian_sample_count;
+  const case_backsolve_kernel = guassian_kernel(sigma, gaussian_sample_count);
+  let case_estimate = new TimeSeries(
     daily_fatality_time_series.domain(),
-    daily_fatality_time_series.range().divide(fatality_rate)).date_shift(-delay_days);
-  const active_case_kernel = nj.ones(survival_course_days);
+    daily_fatality_time_series.range().divide(fatality_rate)).date_shift(-delay_days)
+  case_estimate = case_estimate.cross_correlate(case_backsolve_kernel).slice(
+    [-gaussian_sample_count + 1]);
+  const active_case_kernel = nj.ones(contagious_duration_days);
   const active_case_estimate = case_estimate.cross_correlate(active_case_kernel);
   return [case_estimate, active_case_estimate];
 }
 
 /**
+ * Computes an approximate guassian curve with the given standard deviation
+ * and sample count. The result is normalized to sum to 1.0.
+ * @param {number} sigma standard deviation.
+ * @param {number} size number of samples in the returned kernel, must be odd.
+ */
+function guassian_kernel(sigma, size) {
+  assert(size % 2 == 1);
+  const half_size = Math.floor(size / 2);
+  const gauss = nj.arange(-half_size, half_size + 1).pow(2).divide(
+    -2 * sigma * sigma).exp();
+  const norm = nj.sum(gauss);
+  return gauss.divide(norm);
+}
+
+/**
  * Merges and sorts the domains of any number of TimeSeries
  * @param  {...TimeSeries} time_series
- * @return {[number]} the merged time stamps representing the union of domains.
+ * @return {nj.Array} the merged time stamps representing the union of domains.
  */
 function merge_domains(...time_series) {
   const domain_set = new Set();
