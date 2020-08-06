@@ -14,6 +14,16 @@ class ChartManager {
     }
   }
 
+  _chart_options(title) {
+    return {
+      title: {
+        display: true,
+        text: title,
+        fontSize: 16
+      }
+    };
+  }
+
   /**
    * Removes existing charts, performs computations, then updates the
    * visualizations.
@@ -63,7 +73,8 @@ class ChartManager {
             borderColor: '#cd953e',
             fill: false
           }]
-        }
+        },
+        options: this._chart_options('Active Contagious Cases Estimate'),
       }
     );
 
@@ -75,11 +86,12 @@ class ChartManager {
           labels: daily_fatalities.domain_strings(),
           datasets: [{
             data: daily_fatalities.as_chart_data(),
-            label: 'Daily Fatalities',
+            label: 'Confirmed Cases',
             borderColor: '#3e95cd',
             fill: false
-          }]
-        }
+          },]
+        },
+        options: this._chart_options('Daily Fatalities')
       }
     );
 
@@ -94,16 +106,17 @@ class ChartManager {
           labels: daily_cases_labels,
           datasets: [{
             data: daily_cases.as_chart_data(),
-            label: 'Recorded Daily Cases',
+            label: 'Confirmed Cases',
             borderColor: '#3e95cd',
             fill: false
           }, {
             data: daily_case_estimate.as_chart_data(),
-            label: 'Estimated Daily Cases',
+            label: 'Estimated From Fatality Rate',
             borderColor: '#cd953e',
             fill:false
           }]
-        }
+        },
+        options: this._chart_options('Daily Infections')
       }
     )
     
