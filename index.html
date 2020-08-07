@@ -39,6 +39,65 @@
     <script>
       $('.select2').select2();
     </script>
+  
+    <br>
+    <div class="container">
+      <p>
+        <a class="btn btn-primary btn-sm" data-toggle="collapse" href="#parameter_panel" role="button" aria-expanded="false" aria-controls="parameter_panel">
+          Show Parameters
+        </a>
+      </p>
+      <div class="row collapse" id="parameter_panel">
+        <form>
+          <h5>Backsolving Daily Cases from Mortality</h5>
+          <p>
+          The following parameters control the assumed normal distribution, for
+          those who ultimately die of COVID-19, of the number of days when they
+          are first infected to when they pass away.
+          </p>
+          <label for="infection_mortality_delay">Mean Days from Infection to Death</label>
+          <input type="range" class="custom-range" min="0" max="30" step="1" id="infection_mortality_delay">
+          <label for="infection_mortality_iqr">Interquartile Range</label>
+          <input type="range" class="custom-range" min="1" max="14" step="1" id="infection_mortality_iqr">
+          <br>
+          <p>
+          The following parameters control the assumed fatality rate, or the
+          fraction of people who, once infected, will eventually die. The rate
+          changes with time, for instance as treatment becomes more effective,
+          so we set an "early" rate and a "late" rate, as well as a transition
+          day and an approximation for the number of days over which this
+          transition may have occurred.
+          </p>
+          <div class="form-row align-items-center">
+            <div class="col-sm-3 my-1">
+              <label class="sr-only" for="early_fatality_rate">Early Fatality Rate</label>
+              <input type="text" class="form-control" id="early_fatality_rate" placeholder="0.01">
+            </div>
+            <div class="col-sm-3 my-1">
+              <label class="sr-only" for="transition_date">Fatality Rate Transition Date</label>
+              <input type="text" class="form-control" id="transition_date" placeholder="1 June 2020">
+            </div>
+            <div class="col-sm-3 my-1">
+              <label for="fatality_rate_transition_days">Transition Time in Days</label>
+              <input type="range" class="custom-range" min="1" max="30" step="1" id="fatality_rate_transition_days">
+            </div>
+            <div class="col-sm-3 my-1">
+              <label class="sr-only" for="late_fatality_rate">Late Fatality Rate</label>
+              <input type="text" class="form-control" id="late_fatality_rate" placeholder="0.005">
+            </div>
+          </div>
+          <br>
+          <p>
+          Finally, we select the average number of days that a person with
+          COVID-19 is likely to be actively contagious. By default, we assume
+          either presymptomatic and contagious or asymptomatic, since a
+          symptomatic carrier is (hopefully) likely to self-isolate.
+          </p>
+          <label for="contagious_days">Days Contagious</label>
+          <input type="range" class="custom-range" min="1" max="30" step="1" id="contagious_days">
+        </form>
+      </div>
+    </div>
 
     <div class="container">
       <div class="row">
