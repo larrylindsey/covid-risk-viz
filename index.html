@@ -44,22 +44,108 @@
     <div class="container">
       <p>
         <a class="btn btn-primary btn-sm" data-toggle="collapse" href="#parameter_panel" role="button" aria-expanded="false" aria-controls="parameter_panel">
-          Show Parameters
+          Details
         </a>
       </p>
       <div class="row collapse" id="parameter_panel">
         <form>
+          <h4>About</h4>
+          <p>
+          I started this project after I went looking for answer to the
+          question of, basically, what the risk of catching COVID-19 is out in
+          the world. There are plenty of sources for the daily confirmed case 
+          count, but testing in the United States is not common or consistent
+          enough for this alone to be a useful indicator. The fatality count,
+          while not fool-proof, is more reliable, and can be used to back-solve 
+          for at least an estimate of what the actual case count would have been
+          when those who die of this disease likely caught it.
+          </p>
+          <p>
+          The purpose of this site is to get an idea of what the case rate is
+          in a given county or equivalent. I use a lot of hand-wavy
+          approximations here, so these estimates are probably wrong by
+          somewhere between a little and a lot. In other words, I don't 
+          recommend using this for instance to make any important life
+          decisions.
+          </p>
+          <p>
+          This site is open source, and may be found on
+          <a href="https://github.com/larrylindsey/covid-risk-viz" target="_blank">
+            github.
+          </a>
+          Please direct any comments or suggestions you may have there.
+          </p>
+          <br>
+          <h4>Estimating the COVID-19 Case Rate</h4>
+          <p>
+          By "case rate", I mean the fraction of people who have an actively
+          contagious case of the disease. For instance, if 100 people are
+          able the spread the disease in a county with a population of 100,000,
+          then the case rate there is 0.1 percent. This is related to, but not
+          exactly, the probability that any given person you might meet could
+          transmit the disease to you.
+          </p>
+          <p>
+          To make this estimate, I back-compute the daily case count from the
+          fatality count, then for each day, I sum the number of likely active
+          cases within a "contagious window" to figure out the total
+          number of actively contagious infections. Dividing by the county
+          population yields the active case rate.
+          </p>
+          <p>
+          To back-compute daily cases from daily fatalities, I guess a
+          distribution of when each person who died from covid likely caught
+          the disease, then divide by the fatality rate (also a guess) to get
+          an estimate of what the actual daily case count was on those days.
+          </p>
           <h5>Backsolving Daily Cases from Mortality</h5>
           <p>
-          The following parameters control the assumed normal distribution, for
-          those who ultimately die of COVID-19, of the number of days when they
-          are first infected to when they pass away.
+          An early
+          <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(20)30566-3/fulltext" target="_blank">
+            publication in The Lancet
+          </a>
+          reported that the time from infection to death took on average 18.5 days with
+          a mean-centered interquartile range (IQR) of 7 days (see the bottom
+          of Table 2). By default, this site uses this to estimate a 
+          distribution of infection dates corresponding to each fatality. These
+          parameters may be adjusted below. It should be noted that the
+          cases studied in this publication were all hospitalized patients,
+          which probably introduces an unknown bias.
           </p>
-          <label for="infection_mortality_delay">Mean Days from Infection to Death</label>
-          <input type="range" class="custom-range" min="0" max="30" step="1" id="infection_mortality_delay">
-          <label for="infection_mortality_iqr">Interquartile Range</label>
-          <input type="range" class="custom-range" min="1" max="14" step="1" id="infection_mortality_iqr">
-          <br>
+          <p>
+          Using a distribution in this way has some drawbacks. It
+          will tend to smooth out "super-spreader" incidents, since we cannot
+          tell when several fatalities are related to the same incident. The
+          use of
+          <a href="https://en.wikipedia.org/wiki/Cross-correlation" target="_blank">
+            cross-correlation
+          </a>
+          also limits the overall amount of time for which this back
+          computation is valid. To mitigate these effects, setting the IQR
+          to zero will result in a simple time-shift.
+          </p>
+          <div class="form-row">
+            <div class="col-sm"></div>
+            <div class="col-sm">
+              <label for="infection_mortality_delay">Mean Days from Infection to Death</label>
+            </div>
+            <div class="col-sm">
+              <input type="range" class="custom-range" min="0" max="30" step="1" id="infection_mortality_delay">
+              <label id="infection_mortality_delay_value">19</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col-sm"></div>
+            <div class="col-sm">
+              <label for="infection_mortality_iqr">Interquartile Range</label>
+            </div>
+            <div class="col-sm">
+              <input type="range" class="custom-range" min="0" max="14" step="1" id="infection_mortality_iqr">
+              <label id="infection_mortality_iqr_value">7</label>
+            </div>
+          </div>
+          
+          <h5>Fatality Rate</h5>
           <p>
           The following parameters control the assumed fatality rate, or the
           fraction of people who, once infected, will eventually die. The rate
@@ -80,6 +166,7 @@
             <div class="col-sm-3 my-1">
               <label for="fatality_rate_transition_days">Transition Time in Days</label>
               <input type="range" class="custom-range" min="1" max="30" step="1" id="fatality_rate_transition_days">
+              <label id="fatality_rate_transition_value">7</label>
             </div>
             <div class="col-sm-3 my-1">
               <label class="sr-only" for="late_fatality_rate">Late Fatality Rate</label>
@@ -87,14 +174,24 @@
             </div>
           </div>
           <br>
+          <h5>Contagious Window</h5>
           <p>
-          Finally, we select the average number of days that a person with
-          COVID-19 is likely to be actively contagious. By default, we assume
-          either presymptomatic and contagious or asymptomatic, since a
-          symptomatic carrier is (hopefully) likely to self-isolate.
+          A person with an active infection will only be contagious for a
+          certain number of days. This could either be because the virus is
+          shed for only a subset of the infection time, or because of self
+          isolation. The default is set to seven days, and this is mostly a
+          guess. I was unable to find a reliable estimate for this number.
           </p>
-          <label for="contagious_days">Days Contagious</label>
-          <input type="range" class="custom-range" min="1" max="30" step="1" id="contagious_days">
+          <div class="form-row">
+            <div class="col-sm"></div>
+            <div class="col-sm">
+              <label for="contagious_days">Days Contagious</label>
+            </div>
+            <div class="col-sm">
+              <input type="range" class="custom-range" min="1" max="30" step="1" id="contagious_days">
+              <label id="contagious_days_value">7</label>
+            </div>
+          </div> 
         </form>
       </div>
     </div>
