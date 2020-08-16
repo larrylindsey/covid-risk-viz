@@ -132,70 +132,75 @@ function populate_state_menu() {
   get_state_county_dict_then(callback);
 }
 
-function fatality_delay_slider() {
-  return document.getElementById('infection_mortality_delay');
-}
+class ParameterManager {
 
-function fatality_delay_label() {
-  return document.getElementById('infection_mortality_delay_value');
-}
+  constructor() {
+    this._fatality_delay_slider =document.getElementById(
+      'infection_mortality_delay');
+    this._fatality_delay_label = document.getElementById(
+      'infection_mortality_delay_value');
+    this._fatality_iqr_slider = document.getElementById(
+      'infection_mortality_iqr');
+    this._fatality_iqr_label = document.getElementById(
+      'infection_mortality_iqr_value');
+    this._rate_transition_slider = document.getElementById(
+      'fatality_rate_transition_days');
+    this._rate_transition_label = document.getElementById(
+      'fatality_rate_transition_value');
+    this._contagious_days_slider = document.getElementById(
+      'contagious_days');
+    this._contagious_days_label = document.getElementById(
+      'contagious_days_value');
+    this._fatality_rate_a_slider = document.getElementById(
+      'early_fatality_rate');
+    this._fatality_rate_a_label =  document.getElementById(
+      'early_fatality_rate_value');
+    this._fatality_rate_b_slider = document.getElementById(
+      'late_fatality_rate');
+    this._fatality_rate_b_label = document.getElementById(
+      'late_fatality_rate_value');
+    this._fatality_rate_date_input = document.getElementById(
+      'transition_date');
+    this._fatality_rate_date = null;
 
-function get_fatality_delay_days() {
-  return parseInt(fatality_delay_label().innerText);
-}
+    this._initialize_slider_label_events();
+    this._initialize_parameter_values();
+  }
 
-function fatality_iqr_slider() {
-  return document.getElementById('infection_mortality_iqr');
-}
+  _initialize_slider_label_events() {
+    const slider_label_pairs = [
+      [this._fatality_delay_slider, this._fatality_delay_label],
+      [this._fatality_iqr_slider, this._fatality_iqr_label],
+      [this._rate_transition_slider, this._rate_transition_label],
+      [this._fatality_rate_a_slider, this._fatality_rate_a_label],
+      [this._fatality_rate_b_slider, this._fatality_rate_b_label],
+      [this._contagious_days_slider, this._contagious_days_label]
+    ];
 
-function fatality_iqr_label() {
-  return document.getElementById('infection_mortality_iqr_value');
-}
+    for (let [slider, label] of slider_label_pairs) {
+      slider.oninput = () => {
+        label.innerText = slider.value;
+      }
+    }
+  }
 
-function get_fatality_iqr_days() {
-  return parseInt(fatality_iqr_label().innerText);
-}
+  _initialize_parameter_values() {
 
-function rate_transition_slider() {
-  return document.getElementById('fatality_rate_transition_days');
-}
+  }
 
-function rate_transition_label() {
-  return document.getElementById('fatality_rate_transition_value');
-}
+  _initialize_parameter_change_events() {
 
-function get_rate_transition_days() {
-  return parseInt(rate_transition_label().innerText);
-}
+  }
+};
 
-function contagious_days_slider() {
-  return document.getElementById('contagious_days');
-}
-
-function contagious_days_label() {
-  return document.getElementById('contagious_days_value');
-}
+g_parameter_manager = undefined;
 
 function get_contagious_days() {
   return parseInt(contagious_days_label().innerText);
 }
 
 function setup_parameters_ui() {
-  fatality_delay_slider().oninput = () => {
-    fatality_delay_label().innerText = fatality_delay_slider().value;
-  };
-
-  fatality_iqr_slider().oninput = () => {
-    fatality_iqr_label().innerText = fatality_iqr_slider().value;
-  };
-  
-  rate_transition_slider().oninput = () => {
-    rate_transition_label().innerText = rate_transition_slider().value;
-  };
-
-  contagious_days_slider().oninput = () => {
-    contagious_days_label().innerText = contagious_days_slider().value;
-  };
+  g_parameter_manager = new ParameterManager();
 }
 
 /**
