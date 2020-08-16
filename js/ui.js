@@ -132,10 +132,45 @@ function populate_state_menu() {
   get_state_county_dict_then(callback);
 }
 
+class DateInputAdapter{
+  constructor(element) {
+    this._element = element;
+    this._callback_count = 0;
+    this._last_valid = undefined;
+  }
+
+  set value(timestamp) {
+    this._element.value = timestamp_to_string(timestamp);
+    this._last_valid = timestamp;
+  }
+
+  get value() {
+    const date = new Date(this._element.value);
+    if (!isNaN(date.valueOf())) {
+      this._last_valid = date.valueOf();
+    }
+    return this._last_valid;
+  }
+
+  set onchange(callback) {
+    // We don't care about event parameters as of yet.
+    const onchange = () => {
+      const count = ++this.callback_count;
+      setTimeout(() => {
+        if (count != this.callback_count) {
+          return;
+        }
+        callback();
+      }, 250);
+    }
+    this._element.onchange = onchange;
+  }
+};
+
 class ParameterManager {
 
   constructor() {
-    this._fatality_delay_slider =document.getElementById(
+    this._fatality_delay_slider = document.getElementById(
       'infection_mortality_delay');
     this._fatality_delay_label = document.getElementById(
       'infection_mortality_delay_value');
@@ -163,8 +198,32 @@ class ParameterManager {
       'transition_date');
     this._fatality_rate_date = null;
 
-    this._initialize_slider_label_events();
+    this._transition_date_setter = new DateInputAdapter(
+      this._fatality_rate_date_input);
+
+    this._default_values = {
+      'fatality_delay': 19,
+      'fatality_delay_iqr': 7,
+      'rate_transition_date': new Date('June 1 2020').valueOf,
+      'rate_transition_days': 7,
+      'fatality_rate_a': 0.01,
+      'fatality_rate_b': 0.005,
+      'contagious_days': 14
+    };
+
+    this._parameter_element_map = {
+      'fatality_delay': this._fatality_delay_slider,
+      'fatality_delay_iqr': this._fatality_iqr_slider,
+      'rate_transition_date': this._transition_date_setter,
+      'rate_transition_days': this._rate_transition_slider,
+      'fatality_rate_a': this._fatality_rate_a_slider,
+      'fatality_rate_b': this._fatality_rate_b_slider,
+      'contagious_days': this._contagious_days_slider
+    }
+
     this._initialize_parameter_values();
+    this._initialize_slider_label_events();
+    this._initialize_parameter_change_events();
   }
 
   _initialize_slider_label_events() {
@@ -178,6 +237,7 @@ class ParameterManager {
     ];
 
     for (let [slider, label] of slider_label_pairs) {
+      label.innerText = slider.value;
       slider.oninput = () => {
         label.innerText = slider.value;
       }
@@ -185,11 +245,58 @@ class ParameterManager {
   }
 
   _initialize_parameter_values() {
+    // copy defaults
+    const parameter_values = {};
+    for (let key in this._default_values) {
+      parameter_values[key] = this._default_values[key];
+    }
 
+    // parse url query
+    const url_param_tokens = location.search.substring(1).split('&');
+
+    for (let param_token of url_param_tokens) {
+      if (!param_token) continue;
+      let [k, v] = param_token.split('=');
+      if (!v) continue;
+      parameter_values[k] = v;
+    }
+
+    for (let key in parameter_values) {
+      const element = this._parameter_element_map[key];
+      if (!element) {
+        console.log(`Could not find element for key ${key}`);
+        continue;
+      }
+      element.value = parameter_values[key];
+    }
   }
 
   _initialize_parameter_change_events() {
+    for (let key in this._parameter_element_map) {
+      this._parameter_element_map[key].onchange = () => {
+        this._on_parameter_change();
+      }
+    }
+  }
 
+  _on_parameter_change() {
+    const parameter_values = {};
+    for (let key in this._parameter_element_map) {
+      parameter_values[key] = this._parameter_element_map[key].value;
+    }
+
+    const url = new URL(location.href);
+    url.search = '';
+    const params = url.searchParams;
+
+    for (let key in this._parameter_element_map) {
+      const value = this._parameter_element_map[key].value;
+      if (this._default_values[key] != value) {
+        params.append(key, value);
+      }
+    }
+
+    window.history.replaceState('', '', url.toString());
   }
 };
 
