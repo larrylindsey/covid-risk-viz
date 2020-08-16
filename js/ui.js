@@ -204,7 +204,7 @@ class ParameterManager {
     this._default_values = {
       'fatality_delay': 19,
       'fatality_delay_iqr': 7,
-      'rate_transition_date': new Date('June 1 2020').valueOf,
+      'rate_transition_date': new Date('1 June 2020').valueOf(),
       'rate_transition_days': 7,
       'fatality_rate_a': 0.01,
       'fatality_rate_b': 0.005,
