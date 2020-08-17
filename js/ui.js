@@ -140,7 +140,8 @@ class DateInputAdapter{
   }
 
   set value(timestamp) {
-    this._element.value = timestamp_to_string(timestamp);
+    this._element.value = timestamp_to_string(
+      parseInt(timestamp));
     this._last_valid = timestamp;
   }
 
@@ -154,16 +155,24 @@ class DateInputAdapter{
 
   set onchange(callback) {
     // We don't care about event parameters as of yet.
-    const onchange = () => {
-      const count = ++this.callback_count;
+    const oninput = () => {
+      const count = ++this._callback_count;
       setTimeout(() => {
-        if (count != this.callback_count) {
+        if (count != this._callback_count) {
           return;
         }
         callback();
       }, 250);
+    }    
+    this._element.oninput = oninput;
+    this._element.onchange = () => {
+      const test_date = new Date(this._element.value);
+      if (isNaN(test_date.valueOf())) {
+        this._element.style.borderColor = '#ff0000';
+      } else {
+        this._element.style.borderColor = '';
+      }
     }
-    this._element.onchange = onchange;
   }
 };
 
