@@ -26,6 +26,14 @@ function get_state_county_dict_then(callback) {
    xhr.send();    
 }
 
+function to_safe_name(name) {
+  return name.replace(/ /g, '_');
+}
+
+function from_safe_name(name) {
+  return name.replace(/_/g, ' ');
+}
+
 /**
  * Fetches and parses county-wise confirmed case and fatality data, then passes
  * it to the given callback.
@@ -66,8 +74,8 @@ function get_county_data_then(state, county, callback) {
 
    // Resource paths are the same as capitalized states and counties with any
    // spaces replaced by underscores.
-   const safe_state = state.replace(/ /g, '_');
-   const safe_county = county.replace(/ /g, '_');
+   const safe_state = to_safe_name(state);
+   const safe_county = to_safe_name(county);
    const url = `data/${safe_state}/${safe_county}.json`;
 
    let xhr = new XMLHttpRequest();
