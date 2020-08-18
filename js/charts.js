@@ -67,12 +67,13 @@ class ChartManager {
             label: 'Estimated Cases',
             borderColor: '#3e95cd',
             fill: false
-          }, {
-            data: active_case_estimate_projection.as_chart_data(),
-            label: 'Extrapolated Cases',
-            borderColor: '#cd953e',
-            fill: false
           }]
+          // {
+          //   data: active_case_estimate_projection.as_chart_data(),
+          //   label: 'Extrapolated Cases',
+          //   borderColor: '#cd953e',
+          //   fill: false
+          // }
         },
         options: this._chart_options('Active Contagious Cases Estimate'),
       }
