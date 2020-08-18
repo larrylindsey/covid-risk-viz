@@ -54,13 +54,18 @@ class CountySelectionManager {
    * @param {string} county the selected county.
    */
   _county_selected(county) {
-    let callback = (cases, fatalities) => {
-      update_charts(cases, fatalities);
-    };
     const url = new URL(window.location.href);
     url.searchParams.set('county', to_safe_name(county));
     window.history.replaceState('', '', url.toString());
-    get_county_data_then(this.selected_state(), county, callback);
+    this.refresh_charts();
+  }
+
+  refresh_charts() {
+    let callback = (cases, fatalities) => {
+      update_charts(cases, fatalities);
+    };
+    get_county_data_then(
+      this.selected_state(), this.selected_county(), callback);
   }
 
   /**
@@ -154,8 +159,6 @@ class CountySelectionManager {
     get_state_county_dict_then(callback);
   }
 };
-
-g_selection_manager = null;
 
 class DateInputAdapter{
   constructor(element) {
@@ -313,11 +316,6 @@ class ParameterManager {
   }
 
   _on_parameter_change() {
-    const parameter_values = {};
-    for (let key in this._parameter_element_map) {
-      parameter_values[key] = this._parameter_element_map[key].value;
-    }
-
     const url = new URL(location.href);
     const params = url.searchParams;
 
@@ -330,9 +328,23 @@ class ParameterManager {
     }
 
     window.history.replaceState('', '', url.toString());
+    g_selection_manager.refresh_charts();
+  }
+
+  get_parameters() {
+    const parameter_values = {};
+    for (let key in this._parameter_element_map) {
+      parameter_values[key] = parseFloat(this._parameter_element_map[key].value);
+    }
+    return parameter_values;
   }
 };
 
+function get_chart_parameters() {
+  return g_parameter_manager.get_parameters();
+}
+
+g_selection_manager = undefined;
 g_parameter_manager = undefined;
 
 function get_contagious_days() {

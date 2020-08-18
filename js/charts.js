@@ -40,7 +40,7 @@ class ChartManager {
     const daily_fatalities = differentiate(fatalities);
     const daily_cases = differentiate(cases);
     const [daily_case_estimate, active_case_estimate] =
-      fatality_count_to_case_estimate(daily_fatalities);
+      fatality_count_to_case_estimate(daily_fatalities, get_chart_parameters());
     const active_case_estimate_valid = active_case_estimate.slice(
       [crop_size, -crop_size]);
     const active_case_estimate_projection = active_case_estimate.slice(

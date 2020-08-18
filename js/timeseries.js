@@ -42,33 +42,42 @@ function differentiate(time_series) {
   return new TimeSeries(time_series.domain(), differential_series);
 }
 
-/**
- * Computes an estimate of the daily case rate and active case rate given the
- * daily fatality rate and some additional parameters.
- * @param {TimeSeries} daily_fatality_time_series 
- * @param {number} fatality_rate fraction of cases that become fatal.
- * @param {number} sigma the standard deviation of the distribution of delay
- *   from infection to mortality.
- * @param {number} delay_days mean time between infection and mortality.
- * @param {number} contagious_duration_days mean duration of contagiousness in
- *  days.
- * @return {[TimeSeries, TimeSeries]} an estimate of the new daily infections
- *   and the number of active infectious cases.
- */
 function fatality_count_to_case_estimate(
-    daily_fatality_time_series, fatality_rate = 0.01, sigma = 5.25,
-    delay_days = 19, contagious_duration_days = 14) {
-  let gaussian_sample_count = Math.floor(2.5 * sigma);
+    daily_fatality_time_series, parameter_dict) {
+  const sigma = parameter_dict.fatality_delay_iqr * 0.75;
+  const fatality_rate = sigmoid(
+    daily_fatality_time_series.domain(),
+    parameter_dict.rate_transition_date,
+    parameter_dict.rate_transition_days / 4.0,
+    parameter_dict.fatality_rate_a,
+    parameter_dict.fatality_rate_b);
+
+  let gaussian_sample_count = Math.floor(3.5 * sigma);
   if (gaussian_sample_count % 2 == 0) ++gaussian_sample_count;
-  const case_backsolve_kernel = guassian_kernel(sigma, gaussian_sample_count);
   let case_estimate = new TimeSeries(
     daily_fatality_time_series.domain(),
-    daily_fatality_time_series.range().divide(fatality_rate)).date_shift(-delay_days)
-  case_estimate = case_estimate.cross_correlate(case_backsolve_kernel).slice(
-    [-gaussian_sample_count + 1]);
-  const active_case_kernel = nj.ones(contagious_duration_days);
-  const active_case_estimate = case_estimate.cross_correlate(active_case_kernel);
+    daily_fatality_time_series.range().divide(
+      fatality_rate)).date_shift(-parameter_dict.fatality_delay)
+  if (sigma > 0) {
+    const case_backsolve_kernel = guassian_kernel(
+      sigma, gaussian_sample_count);
+    case_estimate = case_estimate.cross_correlate(case_backsolve_kernel).slice(
+      [-gaussian_sample_count + 1]);
+  }
+  const active_case_kernel = nj.ones(parameter_dict.contagious_days);
+  const active_case_estimate = case_estimate.cross_correlate(
+    active_case_kernel);
   return [case_estimate, active_case_estimate];
+}
+
+function sigmoid(
+    domain, transition_time, transition_factor, early_value, late_value) {
+  const transition_days = transition_time / DAYS_MS;
+  const domain_days = nj.array(domain).divide(DAYS_MS).subtract(
+    transition_days);
+  const exp = nj.exp(domain_days.divide(transition_factor));
+  const scale = late_value - early_value;
+  return exp.divide(exp.add(1)).multiply(scale).add(early_value);
 }
 
 /**
