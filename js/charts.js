@@ -37,37 +37,54 @@ class ChartManager {
     const estimate_kernel_size = 14;
     const crop_size = estimate_kernel_size - 1;
 
+    const chart_parameters = get_chart_parameters();
     const daily_fatalities = differentiate(fatalities);
     const daily_cases = differentiate(cases);
     const [daily_case_estimate, active_case_estimate] =
-      fatality_count_to_case_estimate(daily_fatalities, get_chart_parameters());
-    const active_case_estimate_valid = active_case_estimate.slice(
-      [crop_size, -crop_size]);
-    const active_case_estimate_projection = active_case_estimate.slice(
-      [-crop_size, -4])
+      fatality_count_to_case_estimate(daily_fatalities, chart_parameters);
+    const measured_case_estimate = case_count_to_case_estimate(
+      daily_cases, chart_parameters);
+      
+    // const active_case_estimate_valid = active_case_estimate.slice(
+    //   [crop_size, -crop_size]);
+    // const active_case_estimate_projection = active_case_estimate.slice(
+    //   [-crop_size, -4])
 
-    let norm_factor = nj.arange(1 + 4, estimate_kernel_size).slice([null, null, -1]);
-    norm_factor = norm_factor.divide(estimate_kernel_size);
-    let projected_case_estimate = active_case_estimate_projection.range();
-    projected_case_estimate = projected_case_estimate.divide(norm_factor);
-    active_case_estimate_projection.set_range(projected_case_estimate);
+    // let norm_factor = nj.arange(1 + 4, estimate_kernel_size).slice([null, null, -1]);
+    // norm_factor = norm_factor.divide(estimate_kernel_size);
+    // let projected_case_estimate = active_case_estimate_projection.range();
+    // projected_case_estimate = projected_case_estimate.divide(norm_factor);
+    // active_case_estimate_projection.set_range(projected_case_estimate);
 
 
-    const case_estimate_labels = timestamp_array_to_string(merge_domains(
-      active_case_estimate_projection, active_case_estimate_valid
+    // const case_estimate_labels = timestamp_array_to_string(merge_domains(
+    //   active_case_estimate_projection, active_case_estimate_valid
+    // ));
+
+    const active_cases_title = get_chart_parameters()['cases_as_percentage'] ?
+      'Active Contagious Cases Estimate (Percentage)' :
+      'Active Contagious Cases Estimate';
+    const active_cases_labels = timestamp_array_to_string(merge_domains(
+      active_case_estimate, measured_case_estimate
     ));
     const active_cases_chart = new Chart(
       document.getElementById('active_cases_canvas'),
       {
         type: 'line',
         data: {
-          labels: case_estimate_labels,
+          labels: active_cases_labels,
           datasets: [{
-            data: active_case_estimate_valid.as_chart_data(),
-            label: 'Estimated Cases',
+            data: active_case_estimate.as_chart_data(),
+            label: 'Active Cases Estimated From Fatalities',
             borderColor: '#3e95cd',
             fill: false
-          }]
+          }, {
+            data: measured_case_estimate.as_chart_data(),
+            label: 'Active Cases Estimated From Testing',
+            borderColor: '#cd953e',
+            fill: false
+          }
+        ]
           // {
           //   data: active_case_estimate_projection.as_chart_data(),
           //   label: 'Extrapolated Cases',
@@ -75,7 +92,7 @@ class ChartManager {
           //   fill: false
           // }
         },
-        options: this._chart_options('Active Contagious Cases Estimate'),
+        options: this._chart_options(active_cases_title),
       }
     );
 

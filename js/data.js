@@ -1,8 +1,35 @@
+function _get_state_county_pop_then(states_and_counties, callback) {
+  const xhr_handler = () => {
+    if(xhr.readyState == 4) {
+       if (!xhr.status == 200) {
+         console.log('Error!', xhr);
+         return;
+       }
+  
+       const states_and_counties_pop = JSON.parse(
+         new String(xhr.responseText)
+       );
+
+       callback(states_and_counties, states_and_counties_pop);
+     }
+   }
+  
+   let xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = xhr_handler;
+   xhr.open('GET', 'data/state_county_pop.json', true);
+   xhr.send();   
+}
+
 /**
- * Fetches and parses json containing a dict-like object whose keys are the
- * states and values are lists of counties, then passes it to the callback.
- * @param {function(*): undefined} callback a function that takes a single
- *   argument containing the state and county information.
+ * Fetches and parses json containing state and county information - one set
+ * contains states and counties for which covid data is available, and another
+ * contains population information.
+ * @param {function(*, *): undefined} callback a function that takes one
+ *   argument containing the state and county information, and a second
+ *   containing the available populations for states and counties. These two
+ *   differ in that it may be possible to have a county listed with covid
+ *   statistics, but no known associated population, for instance in the case
+ *   of unknown counties.
  */
 function get_state_county_dict_then(callback) {
   const xhr_handler = () => {
@@ -16,7 +43,7 @@ function get_state_county_dict_then(callback) {
          new String(xhr.responseText)
        );
 
-       callback(states_and_counties);
+       _get_state_county_pop_then(states_and_counties, callback);
      }
    }
   

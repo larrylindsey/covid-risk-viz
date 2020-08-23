@@ -8,6 +8,8 @@ class CountySelectionManager {
    *  county menu is populated.
    */
   constructor(selected_state, selected_county) {
+    this.states_and_counties = undefined;
+    this.states_and_counties_pop = undefined;
     this._state_to_select = selected_state;
     this._county_to_select = selected_county;
     this._state_dropdown = document.getElementById('select_state_control');
@@ -34,6 +36,18 @@ class CountySelectionManager {
     return null;
   }
 
+  selected_county_population() {
+    if (!this.states_and_counties_pop) return null;
+    const state = this.selected_state();
+    const county = this.selected_county();
+    
+    if (!state || !county) return null;
+    const county_pops = this.states_and_counties_pop[state];
+    if (!county_pops) return null;
+
+    return county_pops[county];
+  }
+
   /**
    * Initiates the action to populate the county list for the given state.
    * @param {string} state the selected state.
@@ -57,6 +71,15 @@ class CountySelectionManager {
     const url = new URL(window.location.href);
     url.searchParams.set('county', to_safe_name(county));
     window.history.replaceState('', '', url.toString());
+
+    const percentage_container = document.getElementById(
+      'percentage_container');
+    if (this.selected_county_population()) {
+      percentage_container.style.display = 'block';
+    } else {
+      percentage_container.style.display = 'none';
+    }
+
     this.refresh_charts();
   }
 
@@ -85,6 +108,8 @@ class CountySelectionManager {
    *   a list of this state's counties (or equivalent).
    */
   _populate_county_menu(state) {
+    assert(this.states_and_counties);
+
     const select_county = this._county_dropdown;
     while (select_county.firstChild) {
       select_county.removeChild(select_county.lastChild);
@@ -101,27 +126,25 @@ class CountySelectionManager {
       this._county_selected(county);
     }
     
-    let callback = (states_and_counties) => {
-      for (const county of states_and_counties[state]) {
-        const county_element = this._create_dropdown_item(county);
-        select_county.appendChild(county_element);
-      }
-      if (this._county_to_select) {
-        const county_dropdown_jq = $(`#${this._county_dropdown.id}`);
-        county_dropdown_jq.val(from_safe_name(this._county_to_select));
-        county_dropdown_jq.trigger('change');
-        this._county_to_select = null;
-      }
+    for (const county of this.states_and_counties[state]) {
+      const county_element = this._create_dropdown_item(county);
+      select_county.appendChild(county_element);
     }
-
-    get_state_county_dict_then(callback);
+    if (this._county_to_select) {
+      const county_dropdown_jq = $(`#${this._county_dropdown.id}`);
+      county_dropdown_jq.val(from_safe_name(this._county_to_select));
+      county_dropdown_jq.trigger('change');
+      this._county_to_select = null;
+    }
   }
 
   /**
    * Populates the state dropdown selection menu.
    */
   _populate_state_menu() {
-    let callback = (states_and_counties) => {
+    let callback = (states_and_counties, states_and_counties_pop) => {
+      this.states_and_counties = states_and_counties;
+      this.states_and_counties_pop = states_and_counties_pop;
       const state_list = [];
       for (const state in states_and_counties) {
         state_list.push(state);
@@ -159,6 +182,33 @@ class CountySelectionManager {
     get_state_county_dict_then(callback);
   }
 };
+
+class RadioButtonAdapter{
+  constructor(element_a_id, element_b_id) {
+    this._element_a = document.getElementById(element_a_id);
+    this._element_b = document.getElementById(element_b_id);
+  }
+
+  set value(checked) {
+    if (typeof checked == 'string') {
+      checked = checked == 'true';
+    }
+    this._element_a.checked = checked ? true : false;
+    this._element_b.checked = !this._element_a.checked;
+  }
+
+  get value() {
+    if (!current_population()) {
+      return false;
+    }
+    return this._element_a.checked;
+  }
+
+  set onchange(callback) {
+    this._element_a.onchange = callback;
+    this._element_b.onchange = callback;
+  }
+}
 
 class DateInputAdapter{
   constructor(element) {
@@ -238,6 +288,9 @@ class ParameterManager {
     this._transition_date_setter = new DateInputAdapter(
       this._fatality_rate_date_input);
 
+    this._percentage_radios = new RadioButtonAdapter(
+      'population_percentage', 'population_absolute');
+
     this._default_values = {
       'fatality_delay': 19,
       'fatality_delay_iqr': 7,
@@ -245,7 +298,8 @@ class ParameterManager {
       'rate_transition_days': 7,
       'fatality_rate_a': 0.01,
       'fatality_rate_b': 0.005,
-      'contagious_days': 14
+      'contagious_days': 7,
+      'cases_as_percentage': true
     };
 
     this._parameter_element_map = {
@@ -255,7 +309,21 @@ class ParameterManager {
       'rate_transition_days': this._rate_transition_slider,
       'fatality_rate_a': this._fatality_rate_a_slider,
       'fatality_rate_b': this._fatality_rate_b_slider,
-      'contagious_days': this._contagious_days_slider
+      'contagious_days': this._contagious_days_slider,
+      'cases_as_percentage': this._percentage_radios
+    }
+
+    this._parameter_parser_map = {
+      'fatality_delay': parseInt,
+      'fatality_delay_iqr': parseInt,
+      'rate_transition_date': parseInt,
+      'rate_transition_days': parseInt,
+      'fatality_rate_a': parseFloat,
+      'fatality_rate_b': parseFloat,
+      'contagious_days': parseInt,
+      'cases_as_percentage': (value) => {
+        return value ? true : false;
+      }
     }
 
     this._initialize_parameter_values();
@@ -334,7 +402,8 @@ class ParameterManager {
   get_parameters() {
     const parameter_values = {};
     for (let key in this._parameter_element_map) {
-      parameter_values[key] = parseFloat(this._parameter_element_map[key].value);
+      const parser = this._parameter_parser_map[key];
+      parameter_values[key] = parser(this._parameter_element_map[key].value);
     }
     return parameter_values;
   }
@@ -342,6 +411,10 @@ class ParameterManager {
 
 function get_chart_parameters() {
   return g_parameter_manager.get_parameters();
+}
+
+function current_population() {
+  return g_selection_manager.selected_county_population();
 }
 
 g_selection_manager = undefined;

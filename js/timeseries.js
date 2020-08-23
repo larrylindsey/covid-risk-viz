@@ -58,6 +58,7 @@ function fatality_count_to_case_estimate(
     daily_fatality_time_series.domain(),
     daily_fatality_time_series.range().divide(
       fatality_rate)).date_shift(-parameter_dict.fatality_delay)
+
   if (sigma > 0) {
     const case_backsolve_kernel = guassian_kernel(
       sigma, gaussian_sample_count);
@@ -67,7 +68,29 @@ function fatality_count_to_case_estimate(
   const active_case_kernel = nj.ones(parameter_dict.contagious_days);
   const active_case_estimate = case_estimate.cross_correlate(
     active_case_kernel);
-  return [case_estimate, active_case_estimate];
+  if (parameter_dict.cases_as_percentage) {
+    active_case_estimate.set_range(active_case_estimate.range().divide(
+      current_population() / 100.0));
+  }
+  const valid_active_case_estimate = active_case_estimate.slice(
+    [-parameter_dict.contagious_days + 1]);
+  
+  return [case_estimate, valid_active_case_estimate];
+}
+
+function case_count_to_case_estimate(
+    daily_case_time_series, parameter_dict){
+  const active_case_kernel = nj.ones(parameter_dict.contagious_days);
+  const active_case_estimate = daily_case_time_series.cross_correlate(
+    active_case_kernel);
+
+  if (parameter_dict.cases_as_percentage) {
+    active_case_estimate.set_range(active_case_estimate.range().divide(
+      current_population() / 100.0));
+  }
+  const valid_active_case_estimate = active_case_estimate.slice(
+    [-parameter_dict.contagious_days + 1]);
+  return valid_active_case_estimate;
 }
 
 function sigmoid(

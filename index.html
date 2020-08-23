@@ -213,6 +213,26 @@
         <canvas id="active_cases_canvas"></canvas>
       </div>
     </div>
+
+    <br>
+    <div class="container" id="percentage_container">
+      <div class="row">
+        <input type="radio" id="population_percentage" name="population_representation" value="percentage" checked>
+        &nbsp<label for="population_percentage">Percentage</label>
+      </div>      
+      <div class="row">
+        <input type="radio" id="population_absolute" name="population_representation" value="absolute">
+        &nbsp<label for="population_absolute">Absolute</label>
+      </div>
+    </div>
+
+    <script>
+      function hide_percentage_container() {
+        const percentage_container = document.getElementById('percentage_container');
+        percentage_container.style.display = 'none';
+      }
+      hide_percentage_container();
+    </script>
     
 
 </body>
