@@ -10,8 +10,6 @@ Graphs can be viewed [here](https://larrylindsey.github.io/covid-risk-viz/).
 
 Things that are left to do:
 
-* Add county population counts, so the results can be expressed as percentages.
-* Add a plot estimating actively contagious cases from the confirmed case count.
 * Fiddle with chart visuals - markers, colors, etc.
 * Finish data update script to make it easy to cron.
 * Add comments to uncommented code.
