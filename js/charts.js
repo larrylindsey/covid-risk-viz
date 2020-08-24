@@ -75,22 +75,15 @@ class ChartManager {
           labels: active_cases_labels,
           datasets: [{
             data: active_case_estimate.as_chart_data(),
-            label: 'Active Cases Estimated From Fatalities',
+            label: 'Estimated From Fatalities',
             borderColor: '#3e95cd',
             fill: false
           }, {
             data: measured_case_estimate.as_chart_data(),
-            label: 'Active Cases Estimated From Testing',
+            label: 'Estimated From Testing',
             borderColor: '#cd953e',
             fill: false
-          }
-        ]
-          // {
-          //   data: active_case_estimate_projection.as_chart_data(),
-          //   label: 'Extrapolated Cases',
-          //   borderColor: '#cd953e',
-          //   fill: false
-          // }
+          }]
         },
         options: this._chart_options(active_cases_title),
       }
@@ -123,18 +116,18 @@ class ChartManager {
         data: {
           labels: daily_cases_labels,
           datasets: [{
-            data: daily_cases.as_chart_data(),
-            label: 'Confirmed Cases',
-            borderColor: '#3e95cd',
-            fill: false
-          }, {
             data: daily_case_estimate.as_chart_data(),
             label: 'Estimated From Fatality Rate',
-            borderColor: '#cd953e',
+            borderColor: '#3e95cd',
             fill:false
+          }, {
+            data: daily_cases.as_chart_data(),
+            label: 'Confirmed New Cases (By Testing)',
+            borderColor: '#cd953e',
+            fill: false
           }]
         },
-        options: this._chart_options('Daily Infections')
+        options: this._chart_options('Daily New Infections')
       }
     )
     
