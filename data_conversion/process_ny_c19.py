@@ -1,4 +1,6 @@
+#!/usr/bin/python3
 """Methods to convert covid-19-date into a json file tree."""
+import argparse
 import json
 import os
 from collections import defaultdict
@@ -61,13 +63,39 @@ def write_json_tree(state_county_date_dict, base_dir):
       json_path = os.path.join(path, '%s.json' % safe_county)
       with open(json_path, 'w') as f:
         json.dump(date_dict, f)
-    
+
     for counties in state_county.values():
       counties.sort()
 
-    with(open(os.path.join(base_dir, 'state_county.json'), 'w')) as f:
+    with (open(os.path.join(base_dir, 'state_county.json'), 'w')) as f:
       json.dump(state_county, f)
 
 
 def main():
-  pass
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--counties',
+                      type=str,
+                      default=None,
+                      help='Path to a csv file containing covid data.')
+  parser.add_argument('--destination',
+                      type=str,
+                      default='data',
+                      help='Path to the output folder tree.')
+  args = parser.parse_args()
+  counties = args.counties
+  output = args.destination
+
+  root_path = os.path.dirname(__file__)
+
+  if counties is None:
+    counties = os.path.join(root_path, '../covid-19-data/us-counties.csv')
+  if output is None:
+    output = os.path.join(root_path, '../data')
+
+  print('Reading from %s, writing to %s' % (counties, output))
+
+  state_county_dict = parse_counties(counties)
+  write_json_tree(state_county_dict, output)
+
+if __name__ == '__main__':
+  main()
